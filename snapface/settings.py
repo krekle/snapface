@@ -40,4 +40,4 @@ class TestConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
     BCRYPT_LOG_ROUNDS = 1  # For faster tests
-    WTF_CSRF_ENABLED = False  # Allows form testing
+    WTF_CSRF_ENABLED = True  # Allows form testing
