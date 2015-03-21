@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from dependency.snapchat_bots import SnapchatBot
+import daemon
 
 from snapface.database import (
     Column,
@@ -8,7 +10,6 @@ from snapface.database import (
     relationship,
     SurrogatePK,
 )
-from snapface.dependency.snapchat_bots import SnapchatBot
 
 
 class Bot(SurrogatePK, Model, SnapchatBot):
@@ -30,11 +31,12 @@ class Bot(SurrogatePK, Model, SnapchatBot):
     username = Column(db.String, nullable=False)
     password = Column(db.String, nullable=False)
 
-    def __init__(self, name, **kwargs):
-        db.Model.__init__(self, name=name, **kwargs)
+    def __init__(self, **kwargs):
+        super(Bot, self).__init__(**kwargs)
+        # db.Model.__init__(self, name=name, **kwargs)
 
     def __repr__(self):
-        return '<Role({name})>'.format(name=self.name)
+        return '<Bot({name})>'.format(name=self.name)
 
     '''
     Snap specific methods
@@ -54,15 +56,20 @@ class Bot(SurrogatePK, Model, SnapchatBot):
         if self.delete:
             self.delete_friend(friend)
 
+    def run_daemon(self):
+        with daemon.DaemonContext():
+            bot = SnapchatBot(self.username, self.password)
+            bot.listen()
+
 
 class Friend(SurrogatePK, Model):
     __tablename__ = 'friends'
     username = Column(db.String(80), unique=True, nullable=False)
-    bot_id = ReferenceCol('users', nullable=False)
+    bot_id = Column('users', db.ForeignKey('bot.id'), nullable=False)
     bot = relationship('Bot', backref='friends')
 
-    def __init__(self, name, **kwargs):
-        db.Model.__init__(self, name=name, **kwargs)
+    def __init__(self, **kwargs):
+        db.Model.__init__(self, **kwargs)
 
     def __repr__(self):
-        return '<Friend({name})>'.format(name=self.username)
+        return 'Friend({name})'.format(name=self.username)

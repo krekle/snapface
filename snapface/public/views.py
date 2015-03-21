@@ -11,14 +11,14 @@ from snapface.user.forms import RegisterForm
 from snapface.utils import flash_errors
 from snapface.database import db
 
-blueprint = Blueprint('public', __name__, static_folder="../static")
+public_controller = Blueprint('public', __name__, static_folder="../static")
 
 @login_manager.user_loader
 def load_user(id):
     return User.get_by_id(int(id))
 
 
-@blueprint.route("/", methods=["GET", "POST"])
+@public_controller.route("/", methods=["GET", "POST"])
 def home():
     form = LoginForm(request.form)
     # Handle logging in
@@ -32,14 +32,14 @@ def home():
             flash_errors(form)
     return render_template("public/home.html", form=form)
 
-@blueprint.route('/logout/')
+@public_controller.route('/logout/')
 @login_required
 def logout():
     logout_user()
     flash('You are logged out.', 'info')
     return redirect(url_for('public.home'))
 
-@blueprint.route("/register/", methods=['GET', 'POST'])
+@public_controller.route("/register/", methods=['GET', 'POST'])
 def register():
     form = RegisterForm(request.form, csrf_enabled=False)
     if form.validate_on_submit():
@@ -53,7 +53,7 @@ def register():
         flash_errors(form)
     return render_template('public/register.html', form=form)
 
-@blueprint.route("/about/")
+@public_controller.route("/about/")
 def about():
     form = LoginForm(request.form)
     return render_template("public/about.html", form=form)
