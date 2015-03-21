@@ -12,6 +12,7 @@ class Config(object):
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
     DEBUG_TB_INTERCEPT_REDIRECTS = False
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
+    SNAPCHAT_BOT_DIR = os.path.join(os.path.abspath(os.path.join(PROJECT_ROOT, os.pardir)), 'Bot') #Snapchat bot directory
 
 
 class ProdConfig(Config):

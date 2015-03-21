@@ -1,9 +1,8 @@
-import logging, time, uuid, requests
+import logging, time, uuid, requests, base64
 from pysnap import Snapchat
 from pysnap.utils import make_request_token, timestamp
 from snap import Snap
 from constants import DEFAULT_TIMEOUT, STATIC_TOKEN, BASE_URL
-from utils import save_snap
 
 FORMAT = '[%(asctime)-15s] %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -41,7 +40,7 @@ class SnapchatBot(object):
         logger.log(level, "[%s-%s] %s" % (self.__class__.__name__, self.bot_id, message))
 
     @staticmethod
-    def process_snap(snap_obj, data):
+    def process_snap(snap_obj, data, is_story = False):
         media_type = snap_obj["media_type"]
         sender = snap_obj["sender"]
         snap_id = snap_obj['id']
@@ -50,7 +49,8 @@ class SnapchatBot(object):
                     snap_id=snap_id,
                     media_type=media_type,
                     duration=duration,
-                    sender=sender)
+                    sender=sender,
+                    is_story=is_story)
         return snap
 
     def mark_viewed(self, snap):
@@ -92,11 +92,7 @@ class SnapchatBot(object):
         return map(lambda fr: fr['name'], updates["added_friends"])
 
     def send_snap(self, recipients, snap):
-        self.log("Preparing to send snap %s" % snap.snap_id)
-
-        if not snap.uploaded:
-            self.log("Uploading snap %s" % snap.snap_id)
-            snap.upload(self)
+        media_id = self._upload_snap(snap)
 
         if type(recipients) is not list:
             recipients = [recipients]
@@ -105,15 +101,11 @@ class SnapchatBot(object):
 
         self.log("Sending snap %s to %s" % (snap.snap_id, recipients_str))
 
-        self.client.send(snap.media_id, recipients_str, snap.duration)
+        self.client.send(media_id, recipients_str, snap.duration)
 
     def post_story(self, snap):
-        if not snap.uploaded:
-            self.log("Uploading snap")
-            snap.upload(self)
-
-        self.log("Posting snap as story")
-        response = self.client.send_to_story(snap.media_id, snap.duration, snap.media_type)
+        media_id = self._upload_snap(snap)
+        response = self.client.send_to_story(media_id, snap.duration, snap.media_type)
 
         try:
             snap.story_id = response['json']['story']['id']
@@ -121,6 +113,7 @@ class SnapchatBot(object):
             pass
 
     def delete_story(self, snap):
+        print snap.story_id 
         if snap.story_id is None:
             return
 
@@ -138,8 +131,7 @@ class SnapchatBot(object):
     def block(self, username):
         self.client.block(username)
 
-    def get_snaps(self, mark_viewed=True):
-        snaps = self.client.get_snaps()
+    def process_snaps(self, snaps, mark_viewed = True):
         ret = []
 
         for snap_obj in snaps:
@@ -159,6 +151,54 @@ class SnapchatBot(object):
             ret.append(snap)
 
         return ret
+
+    def process_stories(self, stories):
+        ret = []
+        for snap_obj in stories:
+            media_key = base64.b64decode(snap_obj['media_key'])
+            media_iv = base64.b64decode(snap_obj['media_iv'])
+            data = self.client.get_story_blob(snap_obj['media_id'],
+                                              media_key,
+                                              media_iv)
+            if data is None:
+                continue
+            snap_obj['sender'] = self.username
+            snap = self.process_snap(snap_obj, data, is_story = True)
+            ret.append(snap)
+        return ret
+
+    def get_snaps(self, mark_viewed=True):
+        snaps = self.client.get_snaps()
+        return self.process_snaps(snaps)                
+
+    def get_my_stories(self):
+        response = self.client._request('stories', {
+            'username': self.username
+        })
+        stories = map(lambda s: s['story'], response.json()['my_stories'])
+        return self.process_stories(stories)
+
+    def get_friend_stories(self):
+        response = self.client._request('stories', {
+            'username': self.username
+        })
+        ret = []
+        stories_per_friend = map(lambda s: s['stories'], response.json()['friend_stories'])
+        for stories_obj in stories_per_friend:
+            stories = map(lambda so: so['story'], stories_obj)
+            ret.extend(self.process_stories(stories))
+        return ret
+
+    def clear_stories(self):
+        for story in self.get_my_stories():
+            self.delete_story(story)
+
+    def _upload_snap(self, snap):
+        if not snap.uploaded:
+            snap.media_id = self.client.upload(snap.file.name)
+            snap.uploaded = True
+
+        return snap.media_id
 
     def _make_request(self, path, data = None, method = 'POST', files = None):
         if data is None:
