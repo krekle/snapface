@@ -40,6 +40,7 @@ dev.db
 .mr.developer.cfg
 .project
 .pydevproject
+/snaps
 
 # Complexity
 output/*.html

@@ -9,6 +9,7 @@ logging.basicConfig(format=FORMAT)
 logger = logging.getLogger()
 logger.level = logging.DEBUG
 
+
 class SnapchatBot(object):
     def __init__(self, username, password, **kwargs):
         self.bot_id = uuid.uuid4().hex[0:4]
@@ -40,7 +41,7 @@ class SnapchatBot(object):
         logger.log(level, "[%s-%s] %s" % (self.__class__.__name__, self.bot_id, message))
 
     @staticmethod
-    def process_snap(snap_obj, data, is_story = False):
+    def process_snap(snap_obj, data, is_story=False):
         media_type = snap_obj["media_type"]
         sender = snap_obj["sender"]
         snap_id = snap_obj['id']
@@ -113,7 +114,7 @@ class SnapchatBot(object):
             pass
 
     def delete_story(self, snap):
-        print snap.story_id 
+        print snap.story_id
         if snap.story_id is None:
             return
 
@@ -131,7 +132,7 @@ class SnapchatBot(object):
     def block(self, username):
         self.client.block(username)
 
-    def process_snaps(self, snaps, mark_viewed = True):
+    def process_snaps(self, snaps, mark_viewed=True):
         ret = []
 
         for snap_obj in snaps:
@@ -163,13 +164,13 @@ class SnapchatBot(object):
             if data is None:
                 continue
             snap_obj['sender'] = self.username
-            snap = self.process_snap(snap_obj, data, is_story = True)
+            snap = self.process_snap(snap_obj, data, is_story=True)
             ret.append(snap)
         return ret
 
     def get_snaps(self, mark_viewed=True):
         snaps = self.client.get_snaps()
-        return self.process_snaps(snaps)                
+        return self.process_snaps(snaps)
 
     def get_my_stories(self):
         response = self.client._request('stories', {
@@ -200,7 +201,7 @@ class SnapchatBot(object):
 
         return snap.media_id
 
-    def _make_request(self, path, data = None, method = 'POST', files = None):
+    def _make_request(self, path, data=None, method='POST', files=None):
         if data is None:
             data = {}
 
@@ -215,8 +216,8 @@ class SnapchatBot(object):
         if method == 'POST':
             data['timestamp'] = now
             data['req_token'] = make_request_token(self.auth_token, str(now))
-            resp = requests.post(BASE_URL + path, data = data, files = files, headers = headers)
+            resp = requests.post(BASE_URL + path, data=data, files=files, headers=headers)
         else:
-            resp = requests.get(BASE_URL + path, params = data, headers = headers)
+            resp = requests.get(BASE_URL + path, params=data, headers=headers)
 
         return resp

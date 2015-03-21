@@ -19,12 +19,12 @@ from snapface.extensions import (
     admin,
 )
 
+
 def create_app(config_object=ProdConfig):
     '''An application factory, as explained here:
-        http://flask.pocoo.org/docs/patterns/appfactories/
-
     :param config_object: The configuration object to use.
     '''
+
     python_path()
     app = Flask(__name__)
     app.config.from_object(config_object)
@@ -49,10 +49,13 @@ def register_extensions(app):
 
 def initialize_admin():
     from snapface.user.models import User
+
     admin.add_view(ModelView(User, db.session, endpoint="users"))
     from snapface.bots.models import Bot
+
     admin.add_view(ModelView(Bot, db.session))
     from snapface.bots.models import Friend
+
     admin.add_view(ModelView(Friend, db.session))
     return None
 
@@ -72,6 +75,7 @@ def register_errorhandlers(app):
     for errcode in [401, 404, 500]:
         app.errorhandler(errcode)(render_error)
     return None
+
 
 # Adding the whole working tree to the pythonpath, to avoid import errors
 def python_path():
