@@ -1,10 +1,15 @@
 {% extends "layout.html" %}
+{% from 'macro.html' import render_form %}
 {% block content %}
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
 
         <h1>Snapchat Bot Web Interface!</h1>
 
+        <details>
+        <summary><i class="fa fa-plus-circle"></i> New Bot </summary>
+            {{ render_form(botform, action_url='create/', action_text='Submit', class='', btn_class='btn btn-info') }}
+        </details>
     </div><!-- /.jumbotron -->
 
     <div class="body-content">

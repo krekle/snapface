@@ -25,6 +25,20 @@ textarea {
   max-width: 700px;
 }
 
+/* Details and summary */
+
+details summary::-webkit-details-marker {
+	display:none;
+}
+
+details summary:focus {
+	display: none;
+}
+
+details summary {
+	cursor:pointer;
+}
+
 /* Forms */
 
 .navbar-form input[type="text"],

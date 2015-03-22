@@ -23,7 +23,6 @@ class Bot(SurrogatePK, Model):
 
     # Bot actions
     story = Column(db.Boolean, default=False)
-    store = Column(db.Boolean, default=False)
     bot_pid = Column(db.String)
     # TODO: Add more actions
 

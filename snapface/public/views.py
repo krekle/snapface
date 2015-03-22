@@ -26,7 +26,7 @@ def home():
         if form.validate_on_submit():
             login_user(form.user)
             flash("You are logged in.", 'success')
-            redirect_url = request.args.get("next") or url_for("user.members")
+            redirect_url = request.args.get("next") or url_for("user.bots")
             return redirect(redirect_url)
         else:
             flash_errors(form)
@@ -44,7 +44,8 @@ def logout():
 @public_controller.route("/register/", methods=['GET', 'POST'])
 def register():
     form = RegisterForm(request.form, csrf_enabled=False)
-    if form.validate_on_submit():
+    prod = False
+    if form.validate_on_submit() and prod:
         new_user = User.create(username=form.username.data,
                                email=form.email.data,
                                password=form.password.data,
