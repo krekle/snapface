@@ -50,6 +50,8 @@ textarea {
 /* footer */
 
 footer {
+  position:fixed;
+  bottom:0;
   margin-top: 45px;
   padding-top: 5px;
   border-top: 1px solid #eaeaea;

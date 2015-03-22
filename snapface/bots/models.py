@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
-import os
-import uuid
-from dependency.snapchat_bots import SnapchatBot
-from dependency.daemon import Daemon
+import subprocess
+import sys
+from snapface.bots.bot import SenderBot
 
 from snapface.database import (
     Column,
     db,
     Model,
-    ReferenceCol,
     relationship,
     SurrogatePK,
 )
 
 
-class Bot(SurrogatePK, Model, SnapchatBot):
+class Bot(SurrogatePK, Model):
     __tablename__ = 'bot'
     name = Column(db.String(80), nullable=False)
-    bot_id = Column(db.String(80))
+
     # Friend stuff
     add = Column(db.Boolean, default=False)
     delete = Column(db.Boolean, default=False)
@@ -25,6 +23,7 @@ class Bot(SurrogatePK, Model, SnapchatBot):
     # Bot actions
     story = Column(db.Boolean, default=False)
     store = Column(db.Boolean, default=False)
+    bot_pid = Column(db.String)
     # TODO: Add more actions
 
     # Store incomming
@@ -35,60 +34,39 @@ class Bot(SurrogatePK, Model, SnapchatBot):
     password = Column(db.String, nullable=False)
 
     def __init__(self, **kwargs):
-        bot_id = uuid.uuid4().hex[0:4]
         super(Bot, self).__init__(**kwargs)
 
     def __repr__(self):
         return '<Bot({name})>'.format(name=self.name)
 
-    '''
-    Snap specific methods
-    '''
-    ## Event handlers
-    def on_snap(self, sender, snap):
-        if self.storify:
-            self.post_story(snap)
+    def get_cmd_args(self):
+        cmd_str = '-u %s -p %s -of %s' % (self.username, self.password, self.name)
         if self.store:
-            snap.save(dir_name=os.path.join(PROJECT_ROOT, 'snaps'))
-
-    def on_friend_add(self, friend):
+            cmd_str += ' --store'
         if self.add:
-            self.add_friend(friend)
-
-    def on_friend_delete(self, friend):
+            cmd_str += ' --add'
         if self.delete:
-            self.delete_friend(friend)
+            cmd_str += ' --delete'
+        return cmd_str
 
-    # Start the snapbot
-    def start(self):
-        outfolder = os.path.join(os.path.abspath(__file__ + '/../../../'), 'snaps/' + self.username + '/')
-        print outfolder
-        daemon = SnapDaemon(touch(outfolder + 'daemon.pid'), stdin=touch(outfolder + 'stin.txt'), stdout=touch(outfolder + 'stout.txt'),
-                            stderr=touch(outfolder + 'stderr.txt'))
-        daemon.execute_daemon(self, 'start', daemon)
+    def start_bot(self):
+        cmd_pwd = SenderBot.get_screen_cmd('snapface:%s' % self.name)
+        cmd_args = self.get_cmd_args()
+        cmd = cmd_pwd + ' ' + cmd_args
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    # Stop the snapbot
-    def stop(self):
-        SnapDaemon(self.username, self, 'stop')
+        # Store the bots pid
+        self.bot_pid = p.pid
+        db.session.add(self)
+        db.session.commit()
 
-    def test_start(self):
-        self.listen(10)
-
-    # Callback for the daemon
-    def run_daemon(self):
-        try:
-            if self.bot_id:
-                pass
-        except AttributeError:
-            SnapchatBot.__init__(self.username, self.password)
-        # Start the snapchatbot
-        self.listen(5)
-
-
-
-def touch(path):
-    open(path, 'a').close()
-    return path
+        while True:
+            out = p.stderr.read(1)
+            if out == '' and p.poll() != None:
+                break
+            if out != '':
+                sys.stdout.write(out)
+                sys.stdout.flush()
 
 
 class Friend(SurrogatePK, Model):
@@ -102,36 +80,3 @@ class Friend(SurrogatePK, Model):
 
     def __repr__(self):
         return 'Friend({name})'.format(name=self.username)
-
-
-# To run the snap as a daemon
-class SnapDaemon(Daemon):
-    # Referance to the snapbot
-    bot = None
-
-    def run(self):
-        if self.bot:
-            self.bot.run_daemon()
-
-    @staticmethod
-    def execute_daemon(bot, command, daemon):
-        daemon = daemon
-        if not bot:
-            sys.exit(2)
-            return None
-        else:
-            daemon.bot = bot
-            if command:
-                if 'start' == command:
-                    daemon.start()
-                elif 'stop' == command:
-                    daemon.stop()
-                elif 'restart' == command:
-                    daemon.restart()
-                else:
-                    print "Unknown command"
-                    sys.exit(2)
-                sys.exit(0)
-            else:
-                print "usage: %s start|stop|restart" % sys.argv[0]
-                sys.exit(2)
