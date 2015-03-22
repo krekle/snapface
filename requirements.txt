@@ -10,7 +10,6 @@ docopt==0.6.2
 docutils==0.12
 ecdsa==0.13
 enum34==1.0.4
-Fabric==1.10.1
 Flask==0.10.1
 Flask-Admin==1.0.9
 Flask-Assets==0.10
@@ -53,6 +52,7 @@ pytz==2014.2
 PyYAML==3.11
 requests==2.5.3
 schedule==0.3.1
+screenutils==0.0.1.5.4
 six==1.9.0
 snapchat-bots==0.0.0
 speaklater==1.3
