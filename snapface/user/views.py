@@ -59,6 +59,23 @@ def bots():
     return render_template("users/bots.html", running_bots=running_bots, disabled_bots=disabled_bots, botform=bot_form)
 
 
+
+@user_controller.route("/delete/<name>")
+@login_required
+def delete(name):
+    if name:
+        delete_this = Bot.query.filter(Bot.username == name).first()
+        if delete_this:
+            db.session.delete(delete_this)
+            db.session.commit()
+            flash('Bot deleted', 'success')
+            return redirect(url_for('user.bots'))
+        else:
+            flash('Error deleting the bot', 'warning')
+    flash('Input error, missing name', 'warning')
+    return redirect(url_for('user.bots'))
+
+
 @user_controller.route("/start/<name>")
 @login_required
 def start(name):
