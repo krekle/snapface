@@ -14,7 +14,8 @@ from snapface.database import (
 
 class Bot(SurrogatePK, Model):
     __tablename__ = 'bot'
-    name = Column(db.String(80), nullable=False)
+    name = Column(db.String(80), nullable=False, unique=True)
+    # admins
 
     # Friend stuff
     add = Column(db.Boolean, default=False)
@@ -67,6 +68,9 @@ class Bot(SurrogatePK, Model):
             if out != '':
                 sys.stdout.write(out)
                 sys.stdout.flush()
+
+    def stop_bot(self):
+        p = subprocess.Popen('kill -kill %s & screen -wipe' % self.bot_pid, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
 class Friend(SurrogatePK, Model):

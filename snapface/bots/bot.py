@@ -12,10 +12,9 @@ class SenderBot(SnapchatBot):
     delete = False
 
     def on_snap(self, sender, snap):
-        if self.story:
-            self.post_story(snap)
+        self.post_story(snap)
         if self.store:
-            snap.save(dir_name=os.path.join(self.outfolder, 'snaps'))
+            snap.save(dir_name=self.outfolder)
 
     def on_friend_add(self, friend):
         if self.add:

@@ -1,15 +1,80 @@
-
 {% extends "layout.html" %}
 {% block content %}
-<!-- Main jumbotron for a primary marketing message or call to action -->
-<div class="jumbotron">
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
 
-  <h1>Snapchat Bot Web Interface!</h1>
-  <p> {{ output }}</p>
-</div><!-- /.jumbotron -->
+        <h1>Snapchat Bot Web Interface!</h1>
 
-<div class="body-content">
+    </div><!-- /.jumbotron -->
 
-</div>
+    <div class="body-content">
+        <h1> Running Bots</h1>
+        <div class="row">
+            {% for bot in running_bots %}
+                <div class="col-md-12">
+                    <div class="well well-sm">
+                        <div class="row">
+                            <div class="col-xs-2 col-md-2 text-center">
+                                <img src="http://uxrepo.com/static/icon-sets/foundation/png32/256/000000/fi-social-snapchat-256-000000.png" alt="bootsnipp"
+                                     class="img-rounded img-responsive"/>
+                            </div>
+                            <div class="col-xs-10 col-md-10 section-box">
+                                <h2>{{ bot.name }}</h2>
+                                <small> {{ bot.bot_pid }}</small>
+                                    <form action="{{ url_for('user.stop', name=bot.username) }}">
+                                        <button type="submit" class="btn btn-danger">Turn Off</button>
+                                    </form>
+                                <hr/>
+                            </div>
+
+                        </div>
+                        <div class="row rating-desc">
+                            <div class="col-md-2"> </div>
+                            <div class="col-md-6">
+                                <i class="fa fa-male"></i> 36 friends
+                                <span class="separator">|</span>
+                                <i class="fa fa-camera"></i> 100 snaps
+                            </div>
+                            <div class="col-md-4"> </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <h1> Disabled Bots </h1>
+        <div class="row">
+            {% for bot in disabled_bots %}
+                <div class="col-md-12">
+                    <div class="well well-sm">
+                        <div class="row">
+                            <div class="col-xs-2 col-md-2 text-center">
+                                <img src="http://uxrepo.com/static/icon-sets/foundation/png32/256/000000/fi-social-snapchat-256-000000.png" alt="bootsnipp"
+                                     class="img-rounded img-responsive"/>
+                            </div>
+                            <div class="col-xs-10 col-md-10 section-box">
+                                <h2>{{ bot.name }}</h2>
+                                <small> {{ bot.bot_pid }}</small>
+                                    <form action="{{ url_for('user.start', name=bot.username) }}">
+                                        <button type="submit" class="btn btn-success">Turn On</button>
+                                    </form>
+                                <hr/>
+                            </div>
+
+                        </div>
+                        <div class="row rating-desc">
+                            <div class="col-md-2"> </div>
+                            <div class="col-md-6">
+                                <i class="fa fa-male"></i> 36 friends
+                                <span class="separator">|</span>
+                                <i class="fa fa-camera"></i> 100 snaps
+                            </div>
+                            <div class="col-md-4"> </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}
 
