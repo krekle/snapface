@@ -13,7 +13,7 @@
     </div><!-- /.jumbotron -->
 
     <div class="body-content">
-        {% if running_bots %}
+        {% if running_bots|length >= 1 %}
             <h1> Running Bots</h1>
             <div class="row">
                 {% for bot in running_bots %}
@@ -49,7 +49,7 @@
                 {% endfor %}
             </div>
         {% endif %}
-        {% if disabled_bots %}
+        {% if disabled_bots|length >= 1 %}
             <h1> Disabled Bots </h1>
             <div class="row">
                 {% for bot in disabled_bots %}
